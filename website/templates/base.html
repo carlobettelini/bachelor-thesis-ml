@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Screenplay generator</title>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.css">
+    <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.js"></script>
+    <style>
+.ui.menu {
+  border-radius: 0;
+}
+table {
+  margin: 1em auto;
+  border-spacing: 0;
+}
+td.ui.input > input {
+  text-align: center;
+}
+td.ui.input > input.blue {
+  color: white;
+  background: #2185D0;
+  font-weight: bold;
+}
+td.ui.input > input.red {
+  color: white;
+  background: #DB2828;
+  font-weight: bold;
+}
+@media print {
+td.ui.input > input.blue {
+  box-shadow: inset 0 0 0 1000px #83c7fc;
+}
+td.ui.input > input.red {
+  box-shadow: inset 0 0 0 1000px #DB2828;
+}
+}
+td {
+  height: 40px;
+  width: 40px;
+  padding: 0;
+  margin: 0.1rem;
+  text-align: center;
+}
+td:first-child {
+  margin-left: 0.5rem;
+}
+td:last-child {
+  margin-right: 0.5rem;
+}
+tr:first-child {
+  margin-top: 0.5rem;
+}
+tr:last-child td {
+  margin-bottom: 0.5rem;
+}
+/* Disable arrows in number input */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+@media print {
+  .pino {display: none}
+  .intro {display: none}
+  .menu {display: none !important}
+}
+</style>
+
+    <script>
+const $ = x => document.querySelector(x);
+
+function generate(e) {
+  e.preventDefault();
+
+  const prompt = $('input').value;
+  const model = $('select').value;
+
+  console.log(prompt, model);
+
+  fetch('/write_screenplay?prompt=' + prompt + '&model=' + model, {method: "POST"})
+    .then(res => res.json())
+    .then(json => {
+      console.log(json);
+      let a = $('#status').classList;
+      a.remove("info");
+      a.remove("error");
+      a.remove("success");
+
+      $('#sol').innerHTML = json.screenplay;
+      $('#solh').innerHTML = "Here is the screenplay generated from your input:";
+      a.add("success");
+    })
+    .catch(console.error);
+};
+    </script>
+  </head>
+
+  <body class="full height">
+    <div class="ui inverted main menu">
+      <div class="ui container">
+        <div class="ui large secondary network menu">
+          <div class="item">
+            <div class="ui logo shape">
+              <div class="sides">
+                <div class="active ui side">
+                  <strong>Screenplay generation</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="right menu">
+            <div class="item">
+              By Bettelini Carlo
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <main class="ui container">
+      <div class="ui segment intro">
+        <h2 class="ui header">Generating textual datas to support screenplay writing.</h2>
+        <p>To generate a screenplay, fill the field below with the desired input.
+        You may leave the field empty as well, and the model you chose will come up with a random screenplay.
+        Then, press the "Generate" button.</p>
+        <p>These are the available models. D1 and D1+ return longer screenplays with multiple components,
+          while D2 and D2+ return screenplays containing only a component.
+          For components, we mean actions and dialogues.</p>
+        <ul>
+          <li>D1 is trained on a dataset with screenplay fragments that contain various components, with a batch size of 1 and the number of epochs set to 4.</li>
+          <li>D1+ is trained on the same dataset as D1, but with a bigger batch size of 16 and bigger number of epochs set to 10.</li>
+          <li>D2 is trained on a dataset with screenplay fragments that contain only a component, with a batch size of 1 and the number of epochs set to 4.</li>
+          <li>D2+ is trained on the same dataset as D2, but with a bigger batch size of 16 and bigger number of epochs set to 10.</li>
+        </ul>
+      </div>
+      <div class="ui info message" id="status">
+        <div class="header" id="solh">Waiting for input</div>
+        <div class="message"><span id="sol">Fill the bar below and press
+            the <i>Generate</i> button to generate a screenplay.</span></div>
+      </div>
+      <form id="form" onsubmit="generate(event)">
+      <div class="ui segment">
+          <label for="models">Choose a model:</label>
+          <select name="models" id="models">
+            <option value="D1">D1</option>
+            <option value="D1+">D1+</option>
+            <option value="D2">D2</option>
+            <option value="D2+">D2+</option>
+          </select>
+          <br><br>
+        <label for="prompt">Prompt:</label>
+        <input type="text" id="prompt" name="prompt" size="100"><br><br>
+      </div>
+      <div class="pino">
+        <button class="ui labeled icon blue button"
+                type="submit"
+                id="submit">
+          <i class="play icon"></i>
+          Generate
+        </button>
+        <button class="ui labeled icon green button"
+                type="button" id="print" onclick="window.print()">
+          <i class="print icon"></i>
+          Print screenplay</button>
+      </div>
+      </form>
+    </main>
+  </body>
+</html>
+<!-- vim: set ts=2 sw=2 et tw=80: -->
